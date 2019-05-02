@@ -1,7 +1,5 @@
 FROM debian:testing
 
-MAINTAINER jjolon version 1
-
 # Instalar apache, php y librerías necesarias.
 
 RUN apt-get update && \
