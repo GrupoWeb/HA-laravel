@@ -1,28 +1,22 @@
-FROM debian:testing
+FROM php:7.2.10-apache-stretch
 
-# Instalar apache, php y librerías necesarias.
+RUN apt-get update -yqq && \
+    apt-get install -y apt-utils zip unzip && \
+    apt-get install -y nano && \
+    apt-get install -y libzip-dev libpq-dev && \
+    a2enmod rewrite && \
+    docker-php-ext-install pdo_pgsql && \
+    docker-php-ext-install pgsql && \
+    docker-php-ext-configure zip --with-libzip && \
+    docker-php-ext-install zip && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && \
-    apt-get install -y apache2  && \
-    apt-get install -y php php-mysql php-curl php-gd php-mbstring php-xml && \
-    apt-get install -y libapache2-mod-php
+RUN php -r "readfile('http://getcomposer.org/installer');" | php -- --install-dir=/usr/bin/ --filename=composer
 
+COPY default.conf /etc/apache2/sites-enabled/000-default.conf
 
-# Instalar algunos utilitarios.
-RUN apt-get install -y curl unzip git && \
-    apt-get install -y vim nano apt-utils
+WORKDIR /var/www/app
 
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 
-# Habilitar mods de apache.
-RUN a2enmod rewrite
-
-# Exponer apache.
 EXPOSE 80
-
-# Actualice el sitio de apache predeterminado con la configuración que creamos.
-
-ADD apache.conf /etc/apache2/sites-enabled/000-default.conf
-
-RUN service apache2 restart
-
-CMD /usr/sbin/apache2ctl -D FOREGROUND
